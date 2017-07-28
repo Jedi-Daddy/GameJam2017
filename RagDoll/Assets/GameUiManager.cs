@@ -7,14 +7,23 @@ public class GameUiManager : MonoBehaviour
 {
   public Camera MainCamera;
   public GameObject EnemyPrefab;
+  public GameObject BublePrefab;
+  public UnityEngine.UI.Text DepthUpdater;
+  public UnityEngine.UI.Text OxygenUpdater;
 
   private Vector3 _cameraCenter;
   private float _halfOfCameraHeight;
   private float _halfOfCameraWidth;
   private float _enemyWidth;
-  private Queue<GameObject> _objectsPool;
-  private List<GameObject> _objectsOnStage;
+  private Queue<GameObject> _enemiesPool;
+  private List<GameObject> _enemiesOnStage;
+  private Queue<GameObject> _bublesPool;
+  private List<GameObject> _bublesOnStage;
+  private float _lastResetTime;
   private float _timer;
+  private float _timerDiff;
+  private float _currentDepth;
+  private int _oxygen;
   
 	// Use this for initialization
 	void Start () {
@@ -23,66 +32,131 @@ public class GameUiManager : MonoBehaviour
     _cameraCenter = MainCamera.transform.position;
 	  _enemyWidth = EnemyPrefab.GetComponent<Collider2D>().bounds.size.x;
 	  SetInitialState();
-	  GameManager.Instance.EnemyCollide += SetInitialState;
+    GameManager.Instance.EnemyCollide += SetInitialState;
+    GameManager.Instance.BubleCollide += AddOxigen;
 	}
-	
-	// Update is called once per frame
+
+  private void AddOxigen()
+  {
+    _oxygen += 10;
+    OxygenUpdater.text = _oxygen + "bar";
+  }
+
+  // Update is called once per frame
 	void FixedUpdate()
 	{
 	  _timer += Time.deltaTime;
-    if (_timer > Random.Range(0f, 1f) * 6)
+	  if (Time.frameCount % 100 == 0)
 	  {
-	    SpawnEnemy();
+	    _oxygen -= 10;
+      if(_oxygen <= 0)
+        SetInitialState();
+      OxygenUpdater.text = _oxygen + "bar";
+	  }
+	  
+    _currentDepth = Time.time - _lastResetTime;
+	  DepthUpdater.text = _currentDepth.ToString("F1") +"m";
+    if (_timer > Random.Range(0f, 1f) * 8)
+	  {
+	    SpawnObject();
 	    _timer = 0;
 	  }
-	  foreach (var o in _objectsOnStage)
+
+	  foreach (var o in _enemiesOnStage)
 	  {
 	    if (IsOutOfCamera(o))
 	    {
-	      _objectsPool.Enqueue(o);
+	      _enemiesPool.Enqueue(o);
 	    }
 	  }
-	  _objectsOnStage.RemoveAll(IsOutOfCamera);
+	  _enemiesOnStage.RemoveAll(IsOutOfCamera);
 	}
 
   private void SetInitialState()
   {
-    if (_objectsOnStage != null)
+    if (_enemiesOnStage != null)
     {
-      foreach (var o in _objectsOnStage)
+      foreach (var o in _enemiesOnStage)
       {
         Destroy(o);
       }
     }
-    if (_objectsPool != null)
+    if (_enemiesPool != null)
     {
-      foreach (var o in _objectsPool)
+      foreach (var o in _enemiesPool)
       {
         Destroy(o);
       }
     }
 
-    _objectsPool = new Queue<GameObject>();
+    if (_bublesOnStage != null)
+    {
+      foreach (var o in _bublesOnStage)
+      {
+        Destroy(o);
+      }
+    }
+    if (_bublesPool != null)
+    {
+      foreach (var o in _bublesPool)
+      {
+        Destroy(o);
+      }
+    }
+
+    _lastResetTime = Time.time;
+    DepthUpdater.text = "0m";
+    _oxygen = 200;
+    OxygenUpdater.text = _oxygen + "bar";
+
+    _enemiesPool = new Queue<GameObject>();
     for (var i = 0; i < 20; i++)
     {
       var newEnemy = Instantiate(EnemyPrefab);
-      _objectsPool.Enqueue(newEnemy);
+      _enemiesPool.Enqueue(newEnemy);
     }
-    _objectsOnStage = new List<GameObject>();
+    _enemiesOnStage = new List<GameObject>();
+
+    _bublesPool = new Queue<GameObject>();
+    for (var i = 0; i < 20; i++)
+    {
+      var newBuble = Instantiate(BublePrefab);
+      _bublesPool.Enqueue(newBuble);
+    }
+    _bublesOnStage = new List<GameObject>();
   }
 
-  private void SpawnEnemy()
+  private void SpawnObject()
   {
-    if (_objectsPool.Count == 0)
-      return;
+    var rand = Random.Range(0f, 1f);
+    if (rand > 0.5)
+    {
+      if (_enemiesPool.Count == 0)
+        return;
 
-    var newEnemy = _objectsPool.Dequeue();
-    var rangeResult = Random.Range(0f, 1f);
-    var xOffsetCoef = rangeResult > 0.5 ? 1 : -1;
-    var xOffset = Random.Range(0, _halfOfCameraWidth - _enemyWidth) * xOffsetCoef;
-    newEnemy.transform.localPosition = new Vector3(_cameraCenter.x + xOffset, _cameraCenter.y - _halfOfCameraHeight - 10);
-    newEnemy.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 10);
-    _objectsOnStage.Add(newEnemy);
+      var newEnemy = _enemiesPool.Dequeue();
+      var rangeResult = Random.Range(0f, 1f);
+      var xOffsetCoef = rangeResult > 0.5 ? 1 : -1;
+      var xOffset = Random.Range(0, _halfOfCameraWidth - _enemyWidth)*xOffsetCoef;
+      newEnemy.transform.localPosition = new Vector3(_cameraCenter.x + xOffset,
+        _cameraCenter.y - _halfOfCameraHeight - 10);
+      newEnemy.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 8);
+      _enemiesOnStage.Add(newEnemy);
+    }
+    else
+    {
+      if (_bublesPool.Count == 0)
+        return;
+
+      var newBuble = _bublesPool.Dequeue();
+      var rangeResult = Random.Range(0f, 1f);
+      var xOffsetCoef = rangeResult > 0.5 ? 1 : -1;
+      var xOffset = Random.Range(0, _halfOfCameraWidth - _enemyWidth) * xOffsetCoef;
+      newBuble.transform.localPosition = new Vector3(_cameraCenter.x + xOffset,
+        _cameraCenter.y - _halfOfCameraHeight - 10);
+      newBuble.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 8);
+      _bublesOnStage.Add(newBuble);
+    }
   }
 
   private bool IsOutOfCamera(GameObject obj)
