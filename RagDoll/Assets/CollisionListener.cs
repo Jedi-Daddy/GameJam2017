@@ -14,8 +14,7 @@ public class CollisionListener : MonoBehaviour {
         GameManager.Instance.OnEnemyCollide();
       else
       {
-        GameManager.Instance.OnBubleCollide();
-        Destroy(gameObject);
+        GameManager.Instance.OnBubleCollide(gameObject);
       }
     }
   }

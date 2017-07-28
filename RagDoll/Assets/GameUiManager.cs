@@ -21,7 +21,6 @@ public class GameUiManager : MonoBehaviour
   private List<GameObject> _bublesOnStage;
   private float _lastResetTime;
   private float _timer;
-  private float _timerDiff;
   private float _currentDepth;
   private int _oxygen;
   
@@ -33,13 +32,17 @@ public class GameUiManager : MonoBehaviour
 	  _enemyWidth = EnemyPrefab.GetComponent<Collider2D>().bounds.size.x;
 	  SetInitialState();
     GameManager.Instance.EnemyCollide += SetInitialState;
-    GameManager.Instance.BubleCollide += AddOxigen;
+    GameManager.Instance.BubleCollide += OnBubleCollide;
 	}
 
-  private void AddOxigen()
+  private void OnBubleCollide(GameObject buble)
   {
     _oxygen += 10;
     OxygenUpdater.text = _oxygen + "bar";
+    _bublesOnStage.Remove(buble);
+    Destroy(buble);
+    var newBuble = Instantiate(BublePrefab);
+    _bublesPool.Enqueue(newBuble);
   }
 
   // Update is called once per frame
@@ -70,6 +73,15 @@ public class GameUiManager : MonoBehaviour
 	    }
 	  }
 	  _enemiesOnStage.RemoveAll(IsOutOfCamera);
+
+    foreach (var o in _bublesOnStage)
+    {
+      if (IsOutOfCamera(o))
+      {
+        _bublesPool.Enqueue(o);
+      }
+    }
+    _bublesOnStage.RemoveAll(IsOutOfCamera);
 	}
 
   private void SetInitialState()

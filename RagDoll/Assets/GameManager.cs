@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace Assets
 {
@@ -14,7 +15,7 @@ namespace Assets
     }
 
     public event Action EnemyCollide;
-    public event Action BubleCollide;
+    public event Action<GameObject> BubleCollide;
 
     public void OnEnemyCollide()
     {
@@ -22,10 +23,10 @@ namespace Assets
         EnemyCollide();
     }
 
-    public void OnBubleCollide()
+    public void OnBubleCollide(GameObject buble)
     {
       if (BubleCollide != null)
-        BubleCollide();
+        BubleCollide(buble);
     }
   }
 }
