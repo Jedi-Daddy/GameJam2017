@@ -149,7 +149,7 @@ public class GameUiManager : MonoBehaviour
       var newEnemy = _enemiesPool.Dequeue();
       var rangeResult = Random.Range(0f, 1f);
       var xOffsetCoef = rangeResult > 0.5 ? 1 : -1;
-      var xOffset = Random.Range(0, _halfOfCameraWidth - _enemyWidth)*xOffsetCoef;
+      var xOffset = Random.Range(0, _halfOfCameraWidth - _enemyWidth*2)*xOffsetCoef;
       newEnemy.transform.localPosition = new Vector3(_cameraCenter.x + xOffset,
         _cameraCenter.y - _halfOfCameraHeight - 10);
       newEnemy.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 8);
@@ -163,7 +163,7 @@ public class GameUiManager : MonoBehaviour
       var newBuble = _bublesPool.Dequeue();
       var rangeResult = Random.Range(0f, 1f);
       var xOffsetCoef = rangeResult > 0.5 ? 1 : -1;
-      var xOffset = Random.Range(0, _halfOfCameraWidth - _enemyWidth) * xOffsetCoef;
+      var xOffset = Random.Range(0, _halfOfCameraWidth - _enemyWidth *2) * xOffsetCoef;
       newBuble.transform.localPosition = new Vector3(_cameraCenter.x + xOffset,
         _cameraCenter.y - _halfOfCameraHeight - 10);
       newBuble.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 8);

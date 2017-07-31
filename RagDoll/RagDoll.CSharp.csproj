@@ -78,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\CameraToRectSizeSetter.cs" />
     <Compile Include="Assets\CollisionListener.cs" />
     <Compile Include="Assets\DepthInfoView.cs" />
     <Compile Include="Assets\GameManager.cs" />
