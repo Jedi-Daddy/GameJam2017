@@ -9,7 +9,7 @@ public class CollisionListener : MonoBehaviour {
     if (other.gameObject.tag == "Player")
     {
       if(tag == "enemy")
-        GameManager.Instance.OnEnemyCollide();
+		GameManager.Instance.OnEnemyCollide(gameObject);
       else
       {
         GameManager.Instance.OnBubleCollide(gameObject);

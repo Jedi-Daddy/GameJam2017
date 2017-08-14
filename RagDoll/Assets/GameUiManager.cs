@@ -2,49 +2,78 @@
 using System.Collections.Generic;
 using Assets;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameUiManager : MonoBehaviour
 {
   public Camera MainCamera;
   public GameObject EnemyPrefab;
-  public GameObject BublePrefab;
-  public UnityEngine.UI.Text DepthUpdater;
-  public UnityEngine.UI.Text OxygenUpdater;
+  public GameObject BublePrefab;  
+  public GameObject WallPrefab;
 
   private Vector3 _cameraCenter;
   private float _halfOfCameraHeight;
   private float _halfOfCameraWidth;
   private float _enemyWidth;
+	private float _wallWidth;
   private Queue<GameObject> _enemiesPool;
   private List<GameObject> _enemiesOnStage;
   private Queue<GameObject> _bublesPool;
   private List<GameObject> _bublesOnStage;
+	public Slider HpProgressBarSlider;
+	public Text HpCountText;
   private float _lastResetTime;
   private float _timer;
   private float _currentDepth;
   private int _oxygen;
   
 	// Use this for initialization
-	void Start () 
-	{
+  void Start () 
+  {
     _halfOfCameraHeight = MainCamera.orthographicSize;
     _halfOfCameraWidth = _halfOfCameraHeight * MainCamera.aspect;
     _cameraCenter = MainCamera.transform.position;
-	  _enemyWidth = EnemyPrefab.GetComponent<Collider2D>().bounds.size.x;
-	  SetInitialState();
-    GameManager.Instance.EnemyCollide += SetInitialState;
+		_enemyWidth = EnemyPrefab.GetComponent<Renderer>().bounds.size.x;
+		_wallWidth = WallPrefab.transform.GetComponent<Renderer> ().bounds.size.x;
+		var leftWall = Instantiate(WallPrefab);
+		leftWall.transform.position = new Vector2 (_cameraCenter.x - _halfOfCameraWidth, _cameraCenter.y);
+		var rightWall = Instantiate(WallPrefab);
+		rightWall.transform.position = new Vector2 (_cameraCenter.x + _halfOfCameraWidth, _cameraCenter.y);
+	SetInitialState();
+		GameManager.Instance.EnemyCollide += OnEnemyCollide;
     GameManager.Instance.BubleCollide += OnBubleCollide;
-	}
+  }
 
   private void OnBubleCollide(GameObject buble)
   {
     _oxygen += 10;
-    OxygenUpdater.text = _oxygen + "bar";
+		SetAirValue (_oxygen);
     _bublesOnStage.Remove(buble);
     Destroy(buble);
     var newBuble = Instantiate(BublePrefab);
     _bublesPool.Enqueue(newBuble);
   }
+
+	private void OnEnemyCollide(GameObject enemy)
+	{
+		_oxygen -= 10;
+		SetAirValue (_oxygen);
+		_enemiesOnStage.Remove(enemy);
+		Destroy(enemy);
+		var newBuble = Instantiate(EnemyPrefab);
+		_enemiesPool.Enqueue(newBuble);
+	}
+
+	public void SetAirValue(int air)
+	{
+		if (HpProgressBarSlider == null || HpCountText == null)
+			return;
+
+		var value = (float)air / 200;
+
+		HpCountText.text = string.Format("{0}bar/{1}bar", air, 200);
+		HpProgressBarSlider.value = value;
+	}
 
   // Update is called once per frame
 	void FixedUpdate()
@@ -53,13 +82,13 @@ public class GameUiManager : MonoBehaviour
 	  if (Time.frameCount % 100 == 0)
 	  {
 	    _oxygen -= 10;
+			SetAirValue (_oxygen);
       if(_oxygen <= 0)
         SetInitialState();
-      OxygenUpdater.text = _oxygen + "bar";
+      
 	  }
 	  
-    _currentDepth = Time.time - _lastResetTime;
-	  DepthUpdater.text = _currentDepth.ToString("F1") +"m";
+    _currentDepth = Time.time - _lastResetTime;	  
     if (_timer > Random.Range(0f, 1f) * 8)
 	  {
 	    SpawnObject();
@@ -117,10 +146,9 @@ public class GameUiManager : MonoBehaviour
       }
     }
 
-    _lastResetTime = Time.time;
-    DepthUpdater.text = "0m";
-    _oxygen = 200;
-    OxygenUpdater.text = _oxygen + "bar";
+    _lastResetTime = Time.time;   
+    _oxygen = 200;  
+		SetAirValue (_oxygen);
 
     _enemiesPool = new Queue<GameObject>();
     for (var i = 0; i < 20; i++)
@@ -150,8 +178,8 @@ public class GameUiManager : MonoBehaviour
       var newEnemy = _enemiesPool.Dequeue();
       var rangeResult = Random.Range(0f, 1f);
       var xOffsetCoef = rangeResult > 0.5 ? 1 : -1;
-      var xOffset = Random.Range(0, _halfOfCameraWidth - _enemyWidth*2)*xOffsetCoef;
-      newEnemy.transform.localPosition = new Vector3(_cameraCenter.x + xOffset,
+      var xOffset = Random.Range(0, _halfOfCameraWidth)*xOffsetCoef;
+			newEnemy.transform.localPosition = new Vector3(Mathf.Max(_cameraCenter.x -_halfOfCameraWidth + _wallWidth + _enemyWidth / 2,  Mathf.Min(_cameraCenter.x +_halfOfCameraWidth - _wallWidth - _enemyWidth / 2,_cameraCenter.x + xOffset)),
         _cameraCenter.y - _halfOfCameraHeight - 10);
       newEnemy.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 8);
       _enemiesOnStage.Add(newEnemy);
@@ -164,8 +192,8 @@ public class GameUiManager : MonoBehaviour
       var newBuble = _bublesPool.Dequeue();
       var rangeResult = Random.Range(0f, 1f);
       var xOffsetCoef = rangeResult > 0.5 ? 1 : -1;
-      var xOffset = Random.Range(0, _halfOfCameraWidth - _enemyWidth *2) * xOffsetCoef;
-      newBuble.transform.localPosition = new Vector3(_cameraCenter.x + xOffset,
+      var xOffset = Random.Range(0, _halfOfCameraWidth) * xOffsetCoef;
+			newBuble.transform.localPosition = new Vector3(Mathf.Max( _cameraCenter.x - _halfOfCameraWidth + _wallWidth + _enemyWidth / 2, Mathf.Min(_cameraCenter.x +_halfOfCameraWidth - _wallWidth - _enemyWidth / 2, _cameraCenter.x + xOffset)),
         _cameraCenter.y - _halfOfCameraHeight - 10);
       newBuble.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 8);
       _bublesOnStage.Add(newBuble);

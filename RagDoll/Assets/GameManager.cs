@@ -14,19 +14,19 @@ namespace Assets
     {
     }
 
-    public event Action EnemyCollide;
-    public event Action<GameObject> BubleCollide;
+		public event Action<GameObject> EnemyCollide;
+    	public event Action<GameObject> BubleCollide;
 
-    public void OnEnemyCollide()
-    {
-      if (EnemyCollide != null)
-        EnemyCollide();
-    }
+		public void OnEnemyCollide(GameObject enemy)
+		{
+			if (EnemyCollide != null)
+				EnemyCollide (enemy);
+		}
 
     public void OnBubleCollide(GameObject buble)
-    {
-      if (BubleCollide != null)
-        BubleCollide(buble);
-    }
-  }
+		{
+			if (BubleCollide != null)
+				BubleCollide (buble);
+		}
+	}
 }

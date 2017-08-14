@@ -29,11 +29,11 @@ public class RagdollMovement : MonoBehaviour
       Head.GetComponent<Rigidbody2D>().AddForce(new Vector2(0, 20), ForceMode2D.Impulse);
 	  }
 	  else if (Input.GetKey(KeyCode.LeftArrow))
-	    Body.GetComponent<Rigidbody2D>().AddForce(new Vector2(-1, 0), ForceMode2D.Impulse);
+	    Body.GetComponent<Rigidbody2D>().AddForce(new Vector2(-2, 0), ForceMode2D.Impulse);
 	    //Body.GetComponent<Rigidbody2D>().AddForce(new Vector2(transform.right.x * 2, 0),ForceMode2D.Impulse);
 	  else if (Input.GetKey(KeyCode.RightArrow))
 	  {
-	    Body.GetComponent<Rigidbody2D>().AddForce(new Vector2(1, 0), ForceMode2D.Impulse);
+	    Body.GetComponent<Rigidbody2D>().AddForce(new Vector2(2, 0), ForceMode2D.Impulse);
 	    //Body.GetComponent<Rigidbody2D>().AddForce(new Vector2(-transform.right.x*2, 0), ForceMode2D.Impulse);
 	  }
 	}
