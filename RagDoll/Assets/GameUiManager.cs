@@ -25,7 +25,8 @@ public class GameUiManager : MonoBehaviour
   private int _oxygen;
   
 	// Use this for initialization
-	void Start () {
+	void Start () 
+	{
     _halfOfCameraHeight = MainCamera.orthographicSize;
     _halfOfCameraWidth = _halfOfCameraHeight * MainCamera.aspect;
     _cameraCenter = MainCamera.transform.position;
